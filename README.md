@@ -1,4 +1,4 @@
-\# Arduino 4-Sided Traffic Light
+# Arduino 4-Sided Traffic Light
 
 
 
@@ -10,7 +10,7 @@ Each side gets a green light for 5 seconds, followed by a 2-second period where 
 
 
 
-\## How It Works
+## How It Works
 
 
 
@@ -18,9 +18,9 @@ The program uses two main functions:
 
 
 
-\* `red()` — turns all red LEDs on and all green LEDs off.
+* `red()` — turns all red LEDs on and all green LEDs off.
 
-\* `green(side\_green, side\_red)` — first sets all lights to red, then switches the selected side to green.
+* `green(side\_green, side\_red)` — first sets all lights to red, then switches the selected side to green.
 
 
 
@@ -84,20 +84,15 @@ The `loop()` function cycles through the four sides:
 
 
 
-\## Pin Configuration
+## Pin Configuration
 
 
 
 | Direction | Green LED | Red LED |
-
 | --------- | --------- | ------- |
-
 | Right     | Pin 2     | Pin 3   |
-
 | Left      | Pin 7     | Pin 6   |
-
 | Top       | Pin 9     | Pin 8   |
-
 | Bottom    | Pin 5     | Pin 4   |
 
 
@@ -130,7 +125,7 @@ The pin assignments are defined at the beginning of the program:
 
 
 
-\## Timing
+## Timing
 
 
 
@@ -138,9 +133,9 @@ Each direction follows this sequence:
 
 
 
-\* 🟢 Green — \*\*5 seconds\*\*
+* 🟢 Green — \*\*5 seconds\*\*
 
-\* 🔴 All red — \*\*2 seconds\*\*
+* 🔴 All red — \*\*2 seconds\*\*
 
 
 
@@ -156,7 +151,7 @@ The total cycle takes:
 
 
 
-\## Why `changed` Is Used
+## Why `changed` Is Used
 
 
 
@@ -226,45 +221,45 @@ Calling it repeatedly could interfere with LED fade/transition behavior by repea
 
 
 
-\## Requirements
+## Requirements
 
 
 
-\* Arduino board
+* Arduino board
 
-\* 8 LEDs:
-
-
-
-&#x20; \* 4 × red
-
-&#x20; \* 4 × green
-
-\* 8 appropriate current-limiting resistors
-
-\* Breadboard
-
-\* Jumper wires
+* 8 LEDs:
 
 
 
-\## Uploading
+&#x20; * 4 × red
+
+&#x20; * 4 × green
+
+* 8 appropriate current-limiting resistors
+
+* Breadboard
+
+* Jumper wires
 
 
 
-1\. Connect the LEDs according to the pin configuration.
-
-2\. Open the project in the Arduino IDE.
-
-3\. Select the correct Arduino board and port.
-
-4\. Upload the program.
-
-5\. The four-sided light sequence will start automatically.
+## Uploading
 
 
 
-\## Possible Improvements
+1. Connect the LEDs according to the pin configuration.
+
+2. Open the project in the Arduino IDE.
+
+3. Select the correct Arduino board and port.
+
+4. Upload the program.
+
+5. The four-sided light sequence will start automatically.
+
+
+
+## Possible Improvements
 
 
 
@@ -272,23 +267,23 @@ Some possible extensions for the project:
 
 
 
-\* Add smooth green/red fading using PWM.
+* Add smooth green/red fading using PWM.
 
-\* Replace the repeated `while(millis() < ...)` sections with a state machine.
+* Replace the repeated `while(millis() < ...)` sections with a state machine.
 
-\* Use `millis()` without blocking the rest of the program.
+* Use `millis()` without blocking the rest of the program.
 
-\* Add yellow LEDs and a yellow transition phase.
+* Add yellow LEDs and a yellow transition phase.
 
-\* Add buttons to manually change the active direction.
+* Add buttons to manually change the active direction.
 
-\* Add a pedestrian crossing mode.
+* Add a pedestrian crossing mode.
 
-\* Make the green-light duration configurable.
+* Make the green-light duration configurable.
 
 
 
-\## License
+## License
 
 
 
