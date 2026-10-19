@@ -1,293 +1,424 @@
-# Arduino 4-Sided Traffic Light
+\# 🚦 Arduino Smart Crossroad
 
 
 
-A simple Arduino project that controls four pairs of red and green LEDs arranged around four sides: \*\*top, right, bottom, and left\*\*.
+A simple Arduino-based crossroad traffic light controller that detects cars, manages lane priorities using a \*\*FIFO queue\*\*, and automatically switches traffic lights based on sensor activity.
 
 
 
-Each side gets a green light for 5 seconds, followed by a 2-second period where all lights are red. The cycle then continues to the next side.
+The goal of this project is to simulate a basic smart intersection where each lane gets its turn without allowing multiple lanes to have a green light simultaneously.
 
 
 
-## How It Works
+<p align="center">
+
+&#x20; <img src="https://img.shields.io/badge/Platform-Arduino-00979D?style=for-the-badge\&logo=arduino\&logoColor=white" alt="Arduino" />
+
+&#x20; <img src="https://img.shields.io/badge/Language-C%2B%2B-00599C?style=for-the-badge\&logo=cplusplus\&logoColor=white" alt="C++" />
+
+&#x20; <img src="https://img.shields.io/badge/Queue-FIFO-2E8B57?style=for-the-badge" alt="FIFO Queue" />
+
+&#x20; <img src="https://img.shields.io/badge/Status-In%20Development-orange?style=for-the-badge" alt="In Development" />
+
+</p>
 
 
 
-The program uses two main functions:
+\---
 
 
 
-* `red()` — turns all red LEDs on and all green LEDs off.
-
-* `green(side\_green, side\_red)` — first sets all lights to red, then switches the selected side to green.
+\## 📋 Table of Contents
 
 
 
-The `loop()` function cycles through the four sides:
+\- \[✨ Features](#-features)
+
+\- \[🚦 How It Works](#-how-it-works)
+
+\- \[🔄 FIFO Queue](#-fifo-queue)
+
+\- \[🔌 Hardware Requirements](#-hardware-requirements)
+
+\- \[📍 Pin Configuration](#-pin-configuration)
+
+\- \[⚙️ Installation](#️-installation)
+
+\- \[🧠 Technical Overview](#-technical-overview)
+
+\- \[🛠️ Future Improvements](#️-future-improvements)
+
+\- \[📄 License](#-license)
+
+
+
+\---
+
+
+
+\## ✨ Features
+
+
+
+\- 🚗 \*\*Car detection\*\* — sensors monitor four incoming lanes.
+
+\- 🟢 \*\*Dynamic green light\*\* — the selected lane receives permission to move.
+
+\- 🔴 \*\*Safe light switching\*\* — all inactive lanes remain red.
+
+\- ⏱️ \*\*Five-second grace period\*\* — a lane stays green until no detection has occurred for five seconds.
+
+\- 📥 \*\*FIFO queue management\*\* — waiting lanes are served in arrival order.
+
+\- 🔁 \*\*Circular queue\*\* — an array-based queue efficiently manages waiting lanes.
+
+\- ⚡ \*\*Non-blocking operation\*\* — `millis()` allows the controller to monitor sensors without using `delay()`.
+
+
+
+\## 🚦 How It Works
+
+
+
+The controller follows a simple sequence:
+
+
+
+1\. All lanes start with red lights.
+
+2\. A sensor detects a car in a lane.
+
+3\. If no other lane is active, the detected lane can receive a green light.
+
+4\. If another lane already has green, the newly detected lane joins the waiting queue.
+
+5\. The active lane stays green while its sensor continues detecting a car.
+
+6\. After five seconds without detection, the active lane returns to red.
+
+7\. The next lane in the FIFO queue receives green.
+
+
+
+\### Traffic light states
+
+
+
+| Lane state | Red light | Green light |
+
+|:---|:---:|:---:|
+
+| Inactive lane | 🔴 ON | OFF |
+
+| Active lane | OFF | 🟢 ON |
+
+| No active lane | 🔴 ON | OFF |
+
+
+
+\*\*Safety rule:\*\* At most one lane may have a green light at any given time.
+
+
+
+\## 🔄 FIFO Queue
+
+
+
+FIFO stands for \*\*First In, First Out\*\*. The first lane added to the queue is the first one served.
+
+
+
+For example, imagine the top lane is currently green:
 
 
 
 ```text
 
-&#x20;       TOP
+&#x20;TOP LANE: GREEN
 
-&#x20;        ↓
+&#x20;      |
 
-&#x20;    5s GREEN
+&#x20;      v
 
-&#x20;        ↓
+&#x20; Cars arrive:
 
-&#x20;     2s RED
+&#x20; 1. RIGHT lane
 
-&#x20;        ↓
+&#x20; 2. BOTTOM lane
 
-&#x20;      RIGHT
+&#x20; 3. LEFT lane
 
-&#x20;        ↓
 
-&#x20;    5s GREEN
 
-&#x20;        ↓
+&#x20; Waiting queue:
 
-&#x20;     2s RED
+&#x20; FRONT                  BACK
 
-&#x20;        ↓
+&#x20; \[ RIGHT ] -> \[ BOTTOM ] -> \[ LEFT ]
 
-&#x20;     BOTTOM
 
-&#x20;        ↓
 
-&#x20;    5s GREEN
+&#x20; When TOP turns red:
 
-&#x20;        ↓
+&#x20; RIGHT becomes GREEN
 
-&#x20;     2s RED
 
-&#x20;        ↓
 
-&#x20;      LEFT
+&#x20; When RIGHT turns red:
 
-&#x20;        ↓
+&#x20; BOTTOM becomes GREEN
 
-&#x20;    5s GREEN
 
-&#x20;        ↓
 
-&#x20;     2s RED
+&#x20; When BOTTOM turns red:
 
-&#x20;        ↓
-
-&#x20;     repeat
+&#x20; LEFT becomes GREEN
 
 ```
 
 
 
-## Pin Configuration
+The queue uses a \*\*circular array\*\*, with three important variables:
 
 
 
-| Direction | Green LED | Red LED |
-| --------- | --------- | ------- |
-| Right     | Pin 2     | Pin 3   |
-| Left      | Pin 7     | Pin 6   |
-| Top       | Pin 9     | Pin 8   |
-| Bottom    | Pin 5     | Pin 4   |
+| Variable | Purpose |
 
+|:---|:---|
 
+| `queue\[]` | Stores the waiting lane IDs. |
 
-The pin assignments are defined at the beginning of the program:
+| `queueStart` | Points to the next lane to be served. |
 
+| `queueEnd` | Points to the next available position for a new lane. |
 
+| `queueSize` | Tracks the number of waiting lanes. |
 
-```cpp
+| `queued\[]` | Prevents the same lane from being added multiple times. |
 
-\#define GREEN\_RIGHT 2
 
-\#define GREEN\_LEFT 7
 
-\#define GREEN\_TOP 9
+The queue can hold up to four distinct waiting lanes. Each lane can appear only once in the queue.
 
-\#define GREEN\_BOTTOM 5
 
 
+\## 🔌 Hardware Requirements
 
-\#define RED\_RIGHT 3
 
-\#define RED\_LEFT 6
 
-\#define RED\_TOP 8
+\- Arduino-compatible development board
 
-\#define RED\_BOTTOM 4
+\- 4 digital sensors for detecting cars
 
-```
+\- 4 red LEDs
 
+\- 4 green LEDs
 
+\- 8 current-limiting resistors for the LEDs
 
-## Timing
+\- Breadboard and jumper wires
 
+\- USB cable for programming and power
 
 
-Each direction follows this sequence:
 
+Additional components may be required depending on the sensors and the physical intersection design.
 
 
-* 🟢 Green — \*\*5 seconds\*\*
 
-* 🔴 All red — \*\*2 seconds\*\*
+\## 📍 Pin Configuration
 
 
 
-The total cycle takes:
+\### Sensors
 
 
 
-```text
+| Lane | Arduino pin |
 
-4 × (5 + 2) = 28 seconds
+|:---|:---:|
 
-```
+| Top | `1` |
 
+| Right | `2` |
 
+| Bottom | `3` |
 
-## Why `changed` Is Used
+| Left | `4` |
 
 
 
-The program uses a boolean variable:
+\### Green LEDs
 
 
 
-```cpp
+| Lane | Arduino pin |
 
-bool changed = false;
+|:---|:---:|
 
-```
+| Top | `5` |
 
+| Right | `6` |
 
+| Bottom | `7` |
 
-Without it, `green()` would be called continuously during the 5-second period.
+| Left | `8` |
 
 
 
-Instead, this:
+\### Red LEDs
 
 
 
-```cpp
+| Lane | Arduino pin |
 
-if(!changed)
+|:---|:---:|
 
-{
+| Top | `9` |
 
-&#x20;   green(GREEN\_TOP, RED\_TOP);
+| Right | `10` |
 
-&#x20;   changed = true;
+| Bottom | `11` |
 
-}
+| Left | `12` |
 
-```
 
 
+> \*\*Note:\*\* On many Arduino boards, pins 0 and 1 are used for serial communication. If you are using an Arduino Uno or a similar board, consider moving the top sensor from pin 1 to another available digital pin.
 
-ensures that `green()` is executed only \*\*once\*\* when the phase starts.
 
 
+\## ⚙️ Installation
 
-This is important because `green()` calls `red()` first:
 
 
+1\. Clone this repository:
 
-```cpp
 
-void green(int side\_green, int side\_red)
 
-{
+&#x20;  ```bash
 
-&#x20;   red();
+&#x20;  git clone https://github.com/YOUR-USERNAME/arduino-smart-crossroad.git
 
-&#x20;   digitalWrite(side\_green, HIGH);
+&#x20;  ```
 
-&#x20;   digitalWrite(side\_red, LOW);
 
-}
 
-```
+2\. Open the project in the Arduino IDE.
 
 
 
-Calling it repeatedly could interfere with LED fade/transition behavior by repeatedly resetting the LEDs.
+3\. Connect the sensors and LEDs according to the pin configuration.
 
 
 
-## Requirements
+4\. Select the correct board and serial port.
 
 
 
-* Arduino board
+5\. Upload the sketch to your Arduino.
 
-* 8 LEDs:
 
 
+6\. Test each sensor and verify that the traffic lights switch correctly.
 
-&#x20; * 4 × red
 
-&#x20; * 4 × green
 
-* 8 appropriate current-limiting resistors
+\### Sensor assumptions
 
-* Breadboard
 
-* Jumper wires
 
+The current implementation assumes that a sensor outputs `HIGH` when it detects a car and `LOW` otherwise.
 
 
-## Uploading
 
+The controller uses `millis()` to track the five-second grace period without blocking sensor monitoring.
 
 
-1. Connect the LEDs according to the pin configuration.
 
-2. Open the project in the Arduino IDE.
+\*\*Important:\*\* A presence sensor may remain `HIGH` while a car is stationary. In that case, the timer will continue resetting. For a real installation, distinguish vehicle presence from vehicle movement and add appropriate safety controls.
 
-3. Select the correct Arduino board and port.
 
-4. Upload the program.
 
-5. The four-sided light sequence will start automatically.
+\## 🧠 Technical Overview
 
 
 
-## Possible Improvements
+This project demonstrates several fundamental programming concepts:
 
 
 
-Some possible extensions for the project:
+\- \*\*Arrays\*\* — storing sensor and LED pin assignments.
 
+\- \*\*Functions\*\* — separating traffic light control and queue operations.
 
+\- \*\*State management\*\* — tracking the currently active lane.
 
-* Add smooth green/red fading using PWM.
+\- \*\*FIFO data structures\*\* — preserving the order in which lanes join the queue.
 
-* Replace the repeated `while(millis() < ...)` sections with a state machine.
+\- \*\*Circular buffers\*\* — reusing array positions efficiently.
 
-* Use `millis()` without blocking the rest of the program.
+\- \*\*Boolean flags\*\* — preventing duplicate queue entries.
 
-* Add yellow LEDs and a yellow transition phase.
+\- \*\*Time-based logic\*\* — using `millis()` instead of blocking delays.
 
-* Add buttons to manually change the active direction.
 
-* Add a pedestrian crossing mode.
 
-* Make the green-light duration configurable.
+The project is designed as a learning exercise in embedded programming, basic automation, and data structures.
 
 
 
-## License
+\## 🛠️ Future Improvements
 
 
 
-This project is intended for learning and experimentation with Arduino and basic embedded programming.
+Potential additions include:
 
 
+
+\- \[ ] Use separate sensors to detect vehicle arrival and departure.
+
+\- \[ ] Add a pedestrian crossing system.
+
+\- \[ ] Introduce yellow lights and an all-red transition interval.
+
+\- \[ ] Display the queue state through the Serial Monitor or an LCD.
+
+\- \[ ] Add configurable green-light durations.
+
+\- \[ ] Detect and handle faulty sensors.
+
+\- \[ ] Add a physical intersection model.
+
+\- \[ ] Implement a more advanced priority system for emergency vehicles.
+
+\- \[ ] Add a simulation mode for testing different traffic scenarios.
+
+
+
+\## 📄 License
+
+
+
+This project is intended for educational and experimental purposes.
+
+
+
+If you plan to publish it publicly, consider adding an \[MIT License](https://choosealicense.com/licenses/mit/) to make the terms of reuse clear.
+
+
+
+\---
+
+
+
+<p align="center">
+
+&#x20; <b>🚦 One intersection. Four lanes. One green light at a time.</b>
+
+&#x20; <br />
+
+&#x20; <sub>Built with Arduino and a little bit of logic.</sub>
+
+</p>
 
