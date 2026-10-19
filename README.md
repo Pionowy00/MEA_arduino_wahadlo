@@ -1,4 +1,4 @@
-\# 🚦 Arduino Smart Crossroad
+# 🚦 Arduino Smart Crossroad
 
 
 
@@ -24,59 +24,59 @@ The goal of this project is to simulate a basic smart intersection where each la
 
 
 
-\---
+---
 
 
 
-\## 📋 Table of Contents
+## 📋 Table of Contents
 
 
 
-\- \[✨ Features](#-features)
+- [✨ Features](#-features)
 
-\- \[🚦 How It Works](#-how-it-works)
+- [🚦 How It Works](#-how-it-works)
 
-\- \[🔄 FIFO Queue](#-fifo-queue)
+- [🔄 FIFO Queue](#-fifo-queue)
 
-\- \[🔌 Hardware Requirements](#-hardware-requirements)
+- [🔌 Hardware Requirements](#-hardware-requirements)
 
-\- \[📍 Pin Configuration](#-pin-configuration)
+- [📍 Pin Configuration](#-pin-configuration)
 
-\- \[⚙️ Installation](#️-installation)
+- [⚙️ Installation](#️-installation)
 
-\- \[🧠 Technical Overview](#-technical-overview)
+- [🧠 Technical Overview](#-technical-overview)
 
-\- \[🛠️ Future Improvements](#️-future-improvements)
+- [🛠️ Future Improvements](#️-future-improvements)
 
-\- \[📄 License](#-license)
-
-
-
-\---
+- [📄 License](#-license)
 
 
 
-\## ✨ Features
+---
 
 
 
-\- 🚗 \*\*Car detection\*\* — sensors monitor four incoming lanes.
-
-\- 🟢 \*\*Dynamic green light\*\* — the selected lane receives permission to move.
-
-\- 🔴 \*\*Safe light switching\*\* — all inactive lanes remain red.
-
-\- ⏱️ \*\*Five-second grace period\*\* — a lane stays green until no detection has occurred for five seconds.
-
-\- 📥 \*\*FIFO queue management\*\* — waiting lanes are served in arrival order.
-
-\- 🔁 \*\*Circular queue\*\* — an array-based queue efficiently manages waiting lanes.
-
-\- ⚡ \*\*Non-blocking operation\*\* — `millis()` allows the controller to monitor sensors without using `delay()`.
+## ✨ Features
 
 
 
-\## 🚦 How It Works
+- 🚗 **Car detection** — sensors monitor four incoming lanes.
+
+- 🟢 **Dynamic green light** — the selected lane receives permission to move.
+
+- 🔴 **Safe light switching** — all inactive lanes remain red.
+
+- ⏱️ **Five-second grace period** — a lane stays green until no detection has occurred for five seconds.
+
+- 📥 **FIFO queue management** — waiting lanes are served in arrival order.
+
+- 🔁 **Circular queue** — an array-based queue efficiently manages waiting lanes.
+
+- ⚡ **Non-blocking operation** — `millis()` allows the controller to monitor sensors without using `delay()`.
+
+
+
+## 🚦 How It Works
 
 
 
@@ -84,47 +84,42 @@ The controller follows a simple sequence:
 
 
 
-1\. All lanes start with red lights.
+1. All lanes start with red lights.
 
-2\. A sensor detects a car in a lane.
+2. A sensor detects a car in a lane.
 
-3\. If no other lane is active, the detected lane can receive a green light.
+3. If no other lane is active, the detected lane can receive a green light.
 
-4\. If another lane already has green, the newly detected lane joins the waiting queue.
+4. If another lane already has green, the newly detected lane joins the waiting queue.
 
-5\. The active lane stays green while its sensor continues detecting a car.
+5. The active lane stays green while its sensor continues detecting a car.
 
-6\. After five seconds without detection, the active lane returns to red.
+6. After five seconds without detection, the active lane returns to red.
 
-7\. The next lane in the FIFO queue receives green.
+7. The next lane in the FIFO queue receives green.
 
 
 
-\### Traffic light states
+### Traffic light states
 
 
 
 | Lane state | Red light | Green light |
-
 |:---|:---:|:---:|
-
 | Inactive lane | 🔴 ON | OFF |
-
 | Active lane | OFF | 🟢 ON |
-
 | No active lane | 🔴 ON | OFF |
 
 
-
-\*\*Safety rule:\*\* At most one lane may have a green light at any given time.
-
-
-
-\## 🔄 FIFO Queue
+**Safety rule:** At most one lane may have a green light at any given time.
 
 
 
-FIFO stands for \*\*First In, First Out\*\*. The first lane added to the queue is the first one served.
+## 🔄 FIFO Queue
+
+
+
+FIFO stands for **First In, First Out**. The first lane added to the queue is the first one served.
 
 
 
@@ -178,23 +173,17 @@ For example, imagine the top lane is currently green:
 
 
 
-The queue uses a \*\*circular array\*\*, with three important variables:
+The queue uses a **circular array**, with three important variables:
 
 
 
 | Variable | Purpose |
-
 |:---|:---|
-
-| `queue\[]` | Stores the waiting lane IDs. |
-
+| `queue[]` | Stores the waiting lane IDs. |
 | `queueStart` | Points to the next lane to be served. |
-
 | `queueEnd` | Points to the next available position for a new lane. |
-
 | `queueSize` | Tracks the number of waiting lanes. |
-
-| `queued\[]` | Prevents the same lane from being added multiple times. |
+| `queued[]` | Prevents the same lane from being added multiple times. |
 
 
 
@@ -202,23 +191,22 @@ The queue can hold up to four distinct waiting lanes. Each lane can appear only 
 
 
 
-\## 🔌 Hardware Requirements
+## 🔌 Hardware Requirements
 
 
+- Arduino-compatible development board
 
-\- Arduino-compatible development board
+- 4 digital sensors for detecting cars
 
-\- 4 digital sensors for detecting cars
+- 4 red LEDs
 
-\- 4 red LEDs
+- 4 green LEDs
 
-\- 4 green LEDs
+- 8 current-limiting resistors for the LEDs
 
-\- 8 current-limiting resistors for the LEDs
+- Breadboard and jumper wires
 
-\- Breadboard and jumper wires
-
-\- USB cable for programming and power
+- USB cable for programming and power
 
 
 
@@ -226,73 +214,57 @@ Additional components may be required depending on the sensors and the physical 
 
 
 
-\## 📍 Pin Configuration
+## 📍 Pin Configuration
 
 
 
-\### Sensors
+### Sensors
 
 
 
 | Lane | Arduino pin |
-
 |:---|:---:|
-
 | Top | `1` |
-
 | Right | `2` |
-
 | Bottom | `3` |
-
 | Left | `4` |
 
 
 
-\### Green LEDs
+### Green LEDs
 
 
 
 | Lane | Arduino pin |
-
 |:---|:---:|
-
 | Top | `5` |
-
 | Right | `6` |
-
 | Bottom | `7` |
-
 | Left | `8` |
 
 
-
-\### Red LEDs
+### Red LEDs
 
 
 
 | Lane | Arduino pin |
-
 |:---|:---:|
-
 | Top | `9` |
-
 | Right | `10` |
-
 | Bottom | `11` |
-
 | Left | `12` |
 
 
 
-> \*\*Note:\*\* On many Arduino boards, pins 0 and 1 are used for serial communication. If you are using an Arduino Uno or a similar board, consider moving the top sensor from pin 1 to another available digital pin.
+> **Note:** On many Arduino boards, pins 0 and 1 are used for serial communication. If you are using an Arduino Uno or a similar board, consider moving the top sensor from pin 1 to another available digital pin.
 
 
 
-\## ⚙️ Installation
+## ⚙️ Installation
 
 
 
-1\. Clone this repository:
+1. Clone this repository:
 
 
 
@@ -304,27 +276,27 @@ Additional components may be required depending on the sensors and the physical 
 
 
 
-2\. Open the project in the Arduino IDE.
+2. Open the project in the Arduino IDE.
 
 
 
-3\. Connect the sensors and LEDs according to the pin configuration.
+3. Connect the sensors and LEDs according to the pin configuration.
 
 
 
-4\. Select the correct board and serial port.
+4. Select the correct board and serial port.
 
 
 
-5\. Upload the sketch to your Arduino.
+5. Upload the sketch to your Arduino.
 
 
 
-6\. Test each sensor and verify that the traffic lights switch correctly.
+6. Test each sensor and verify that the traffic lights switch correctly.
 
 
 
-\### Sensor assumptions
+### Sensor assumptions
 
 
 
@@ -336,11 +308,11 @@ The controller uses `millis()` to track the five-second grace period without blo
 
 
 
-\*\*Important:\*\* A presence sensor may remain `HIGH` while a car is stationary. In that case, the timer will continue resetting. For a real installation, distinguish vehicle presence from vehicle movement and add appropriate safety controls.
+**Important:** A presence sensor may remain `HIGH` while a car is stationary. In that case, the timer will continue resetting. For a real installation, distinguish vehicle presence from vehicle movement and add appropriate safety controls.
 
 
 
-\## 🧠 Technical Overview
+## 🧠 Technical Overview
 
 
 
@@ -348,19 +320,19 @@ This project demonstrates several fundamental programming concepts:
 
 
 
-\- \*\*Arrays\*\* — storing sensor and LED pin assignments.
+- **Arrays** — storing sensor and LED pin assignments.
 
-\- \*\*Functions\*\* — separating traffic light control and queue operations.
+- **Functions** — separating traffic light control and queue operations.
 
-\- \*\*State management\*\* — tracking the currently active lane.
+- **State management** — tracking the currently active lane.
 
-\- \*\*FIFO data structures\*\* — preserving the order in which lanes join the queue.
+- **FIFO data structures** — preserving the order in which lanes join the queue.
 
-\- \*\*Circular buffers\*\* — reusing array positions efficiently.
+- **Circular buffers** — reusing array positions efficiently.
 
-\- \*\*Boolean flags\*\* — preventing duplicate queue entries.
+- **Boolean flags** — preventing duplicate queue entries.
 
-\- \*\*Time-based logic\*\* — using `millis()` instead of blocking delays.
+- **Time-based logic** — using `millis()` instead of blocking delays.
 
 
 
@@ -368,7 +340,7 @@ The project is designed as a learning exercise in embedded programming, basic au
 
 
 
-\## 🛠️ Future Improvements
+## 🛠️ Future Improvements
 
 
 
@@ -376,27 +348,27 @@ Potential additions include:
 
 
 
-\- \[ ] Use separate sensors to detect vehicle arrival and departure.
+- [ ] Use separate sensors to detect vehicle arrival and departure.
 
-\- \[ ] Add a pedestrian crossing system.
+- [ ] Add a pedestrian crossing system.
 
-\- \[ ] Introduce yellow lights and an all-red transition interval.
+- [ ] Introduce yellow lights and an all-red transition interval.
 
-\- \[ ] Display the queue state through the Serial Monitor or an LCD.
+- [ ] Display the queue state through the Serial Monitor or an LCD.
 
-\- \[ ] Add configurable green-light durations.
+- [ ] Add configurable green-light durations.
 
-\- \[ ] Detect and handle faulty sensors.
+- [ ] Detect and handle faulty sensors.
 
-\- \[ ] Add a physical intersection model.
+- [ ] Add a physical intersection model.
 
-\- \[ ] Implement a more advanced priority system for emergency vehicles.
+- [ ] Implement a more advanced priority system for emergency vehicles.
 
-\- \[ ] Add a simulation mode for testing different traffic scenarios.
+- [ ] Add a simulation mode for testing different traffic scenarios.
 
 
 
-\## 📄 License
+## 📄 License
 
 
 
@@ -408,7 +380,7 @@ If you plan to publish it publicly, consider adding an \[MIT License](https://ch
 
 
 
-\---
+---
 
 
 
