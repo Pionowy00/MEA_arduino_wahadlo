@@ -1,57 +1,144 @@
-// C++ code
-//LEFT SIDE:
-//green - pin 11
-//red - pin 10
-//
-//RIGHT SIDE:
-//green - pin 5
-//red - pin 6
+#include <Adafruit_LiquidCrystal.h>
+#include <Keypad.h>
+
+Adafruit_LiquidCrystal lcd_1(0);
+
+const byte ROWS = 4;
+const byte COLS = 4;
+
+char hexaKeys[ROWS][COLS] = {
+  {'1','2','3','+'},
+  {'4','5','6','-'},
+  {'7','8','9','*'},
+  {'C','0','#','/'}
+};
+
+byte rowPins[ROWS] = {13, 12, 11, 10};
+byte colPins[COLS] = {6, 7, 8, 9};
+
+String text = "";
+
+Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
+
+int num1 = 0;
+int num2 = 0;
+int result = 0;
+
+char operation = ' ';
+
+bool calculated = false;
+bool newNumber = false;
 
 void setup()
 {
-  pinMode(5, OUTPUT);
-  pinMode(6, OUTPUT);
-  pinMode(10, OUTPUT);
-  pinMode(11, OUTPUT);
+  lcd_1.begin(16, 2);
+  lcd_1.setBacklight(1);
 }
 
-	
 void loop()
 {
-  while(true)
+  char customKey = customKeypad.getKey();
+
+  if (customKey)
   {
-    int now = millis();
-  	while(millis() < now + 4000) // LEFT - GREEN, RIGHT - RED
+    if (customKey >= '0' && customKey <= '9')
     {
-    	digitalWrite(11, HIGH);
-      	digitalWrite(10, LOW);
-      
-      	digitalWrite(5, LOW);
-      	digitalWrite(6, HIGH);
+      if (calculated)
+      {
+        text = "";
+        calculated = false;
+        lcd_1.clear();
+      }
+
+      if (newNumber)
+      {
+        lcd_1.setCursor(0, 0);
+        lcd_1.print("                ");
+        newNumber = false;
+      }
+
+      if (text.length() < 16)
+      {
+        text += customKey;
+        lcd_1.setCursor(16 - text.length(), 0);
+        lcd_1.print(text);
+      }
     }
-  	while(millis() < now + 6000) //BREAK
+
+    else if (customKey == 'C')
     {
-    	digitalWrite(11, LOW);
-      	digitalWrite(10, HIGH);
-      
-      	digitalWrite(5, LOW);
-      	digitalWrite(6, HIGH);
+      text = "";
+      num1 = 0;
+      num2 = 0;
+      result = 0;
+      operation = ' ';
+
+      calculated = false;
+      newNumber = false;
+
+      lcd_1.clear();
     }
-  	while(millis() < now + 10000)//LEFT - RED, RIGHT - GREEN
+
+    else if (customKey == '+' || customKey == '-' || customKey == '*' || customKey == '/')
     {
-    	digitalWrite(11, LOW);
-      	digitalWrite(10, HIGH);
-      
-      	digitalWrite(5, HIGH);
-      	digitalWrite(6, LOW);
+      if (text != "" && operation == ' ')
+      {
+        num1 = text.toInt();
+        text = "";
+        operation = customKey;
+        newNumber = true;
+
+        lcd_1.setCursor(15, 1);
+        lcd_1.print(customKey);
+      }
     }
-  	while(millis() < now + 12000)//BREAK
+
+    else if (customKey == '#')
     {
-    	digitalWrite(11, LOW);
-      	digitalWrite(10, HIGH);
-      
-      	digitalWrite(5, LOW);
-      	digitalWrite(6, HIGH);
+      if (text != "" && operation != ' ')
+      {
+        num2 = text.toInt();
+
+        lcd_1.clear();
+
+        if (operation == '/' && num2 == 0)
+        {
+          lcd_1.setCursor(0, 0);
+          lcd_1.print("DIVISION BY ZERO");
+
+          lcd_1.setCursor(0, 1);
+          lcd_1.print("NOT ALLOWED");
+        }
+        else
+        {
+          switch (operation)
+          {
+            case '+':
+              result = num1 + num2;
+              break;
+
+            case '-':
+              result = num1 - num2;
+              break;
+
+            case '*':
+              result = num1 * num2;
+              break;
+
+            case '/':
+              result = num1 / num2;
+              break;
+          }
+
+          lcd_1.setCursor(0, 0);
+          lcd_1.print(result);
+        }
+
+        text = "";
+        operation = ' ';
+        calculated = true;
+        newNumber = false;
+      }
     }
   }
 }
